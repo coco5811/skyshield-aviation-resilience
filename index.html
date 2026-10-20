@@ -1,0 +1,392 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkyShield | Aviation Network Resilience</title>
+<style>
+:root {
+  --bg: #0b1118;
+  --panel: #131d27;
+  --panel2: #192633;
+  --line: #2a3a49;
+  --text: #edf3f7;
+  --muted: #9aabba;
+  --teal: #55d6be;
+  --amber: #f0b45b;
+  --red: #ff7777;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+header {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 16px; padding: 20px 5%; border-bottom: 1px solid var(--line);
+  background: #0e1720;
+}
+.brand { display: flex; gap: 12px; align-items: center; }
+.logo {
+  width: 42px; height: 42px; display: grid; place-items: center;
+  border-radius: 12px; background: #193d3b; color: var(--teal);
+  font-size: 23px;
+}
+h1 { font-size: 21px; margin: 0; letter-spacing: 1.5px; }
+.brand p { color: var(--muted); margin: 4px 0 0; font-size: 12px; }
+.status {
+  border: 1px solid #2d655a; color: var(--teal); border-radius: 20px;
+  padding: 7px 11px; font-size: 11px; white-space: nowrap;
+}
+main { max-width: 1400px; margin: auto; padding: 28px 5%; }
+.eyebrow { color: var(--teal); font-size: 11px; letter-spacing: 2px; font-weight: 700; }
+.intro { display: flex; justify-content: space-between; gap: 24px; align-items: end; margin-bottom: 24px; }
+h2 { margin: 8px 0; font-size: clamp(25px, 4vw, 38px); }
+.intro p { color: var(--muted); max-width: 650px; line-height: 1.6; margin: 8px 0 0; }
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; margin-bottom: 18px; }
+.metric, .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 13px; }
+.metric { padding: 17px; }
+.metric .label { color: var(--muted); font-size: 12px; }
+.metric .value { font-size: 29px; font-weight: 700; margin-top: 10px; }
+.metric .sub { color: var(--muted); font-size: 11px; margin-top: 5px; }
+.layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(270px, 0.8fr); gap: 18px; }
+.panel { padding: 20px; min-width: 0; }
+.panel-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 8px; }
+h3 { margin: 0; font-size: 16px; }
+.small { color: var(--muted); font-size: 12px; line-height: 1.5; }
+#network { display: block; width: 100%; height: auto; min-height: 280px; }
+.edge { stroke: #476071; stroke-width: 2; }
+.edge.closed { stroke: var(--red); stroke-dasharray: 6 6; opacity: .9; }
+.edge-label { fill: #b9c8d4; font-size: 10px; text-anchor: middle; paint-order: stroke; stroke: var(--panel); stroke-width: 4px; stroke-linejoin: round; }
+.node { cursor: pointer; }
+.node circle { fill: #1d4b49; stroke: var(--teal); stroke-width: 2; }
+.node.closed circle { fill: #542c32; stroke: var(--red); stroke-dasharray: 4 3; }
+.node text { fill: var(--text); font-size: 11px; font-weight: 600; text-anchor: middle; }
+.node .id { fill: var(--teal); font-size: 9px; }
+.node.closed .id { fill: var(--red); }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; color: var(--muted); font-size: 11px; margin: 8px 0 14px; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--teal); }
+.dot.red { background: var(--red); }
+.controls { display: grid; gap: 13px; }
+label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 7px; }
+select, button {
+  width: 100%; padding: 11px 12px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--panel2); color: var(--text);
+  font: inherit; font-size: 13px;
+}
+button { cursor: pointer; font-weight: 650; }
+button.primary { background: var(--teal); color: #09201d; border-color: var(--teal); }
+button:hover { filter: brightness(1.1); }
+button:focus, select:focus { outline: 2px solid var(--teal); outline-offset: 2px; }
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.result {
+  padding: 14px; background: #0e1821; border: 1px solid var(--line);
+  border-radius: 9px; margin-top: 14px;
+}
+.result strong { color: var(--teal); }
+.result p { color: var(--muted); line-height: 1.6; font-size: 12px; margin: 8px 0 0; overflow-wrap: anywhere; }
+.section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+.bar-row { display: grid; grid-template-columns: 100px 1fr 25px; gap: 9px; align-items: center; margin: 15px 0; font-size: 12px; }
+.bar-bg { height: 7px; border-radius: 8px; background: #263643; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--teal); border-radius: 8px; }
+#eventLog { padding-left: 18px; margin: 12px 0 0; color: var(--muted); font-size: 12px; line-height: 1.9; }
+footer { color: var(--muted); font-size: 11px; line-height: 1.7; margin-top: 22px; text-align: center; }
+@media(max-width:850px) {
+  .layout { grid-template-columns: 1fr; }
+  .intro { align-items: start; flex-direction: column; }
+}
+@media(max-width:560px) {
+  header { padding: 15px 4%; }
+  main { padding: 22px 4%; }
+  .metrics { grid-template-columns: 1fr 1fr; }
+  .section-grid { grid-template-columns: 1fr; }
+  .status { font-size: 9px; }
+  .panel { padding: 14px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo">✈</div>
+    <div><h1>SKYSHIELD</h1><p>AVIATION NETWORK INTELLIGENCE</p></div>
+  </div>
+  <div class="status">● SIMULATION ONLINE</div>
+</header>
+
+<main>
+  <section class="intro">
+    <div>
+      <div class="eyebrow">DSA PROJECT / GRAPH THEORY</div>
+      <h2>When the network fails,<br>what stays connected?</h2>
+      <p>Simulate airport and route disruptions, inspect network connectivity, and explore how graph algorithms help evaluate recovery options.</p>
+    </div>
+  </section>
+
+  <section class="metrics">
+    <div class="metric"><div class="label">AIRPORTS AVAILABLE</div><div class="value" id="airportMetric">6 / 6</div><div class="sub">Active graph nodes</div></div>
+    <div class="metric"><div class="label">ACTIVE ROUTES</div><div class="value" id="routeMetric">9</div><div class="sub">Available connections</div></div>
+    <div class="metric"><div class="label">REACHABLE FROM PUNE</div><div class="value" id="reachMetric">6 / 6</div><div class="sub">BFS connectivity check</div></div>
+    <div class="metric"><div class="label">CONNECTIVITY LOST</div><div class="value" id="lossMetric">0</div><div class="sub">Compared with baseline</div></div>
+  </section>
+
+  <section class="layout">
+    <div class="panel">
+      <div class="panel-head"><h3>Airport network map</h3><span class="small">Illustrative network</span></div>
+      <p class="small">Select an airport node to inspect its connections. Route labels show illustrative distances.</p>
+      <svg id="network" viewBox="0 0 640 370" role="img" aria-label="Interactive diagram of six connected airports"></svg>
+      <div class="legend"><span><i class="dot"></i>Available airport</span><span><i class="dot red"></i>Closed airport or route</span></div>
+      <div class="result" id="routeResult"><strong>Shortest route: Pune → Delhi</strong><p>Use Dijkstra to calculate the shortest available path.</p></div>
+    </div>
+
+    <aside class="panel">
+      <h3>Disruption simulator</h3>
+      <p class="small">Choose a scenario and apply a simulated failure to the network.</p>
+      <div class="controls">
+        <div>
+          <label for="type">Disruption type</label>
+          <select id="type"><option value="airport">Airport closure</option><option value="route">Flight route closure</option></select>
+        </div>
+        <div>
+          <label for="target">Airport to close</label>
+          <select id="target"></select>
+        </div>
+        <div id="routeChoice" hidden>
+          <label for="routeTarget">Route to close</label>
+          <select id="routeTarget"></select>
+        </div>
+        <button class="primary" id="apply">Apply disruption</button>
+        <div class="btn-row">
+          <button id="recover">Restore network</button>
+          <button id="analyze">Analyze criticality</button>
+        </div>
+        <div>
+          <label for="destination">Dijkstra destination (start: Pune)</label>
+          <select id="destination"></select>
+        </div>
+        <button id="findRoute">Find shortest route</button>
+      </div>
+      <div class="result" id="statusResult" aria-live="polite"><strong>Network stable</strong><p>No disruptions are active. Apply a scenario to inspect its impact.</p></div>
+    </aside>
+  </section>
+
+  <section class="section-grid">
+    <div class="panel">
+      <h3>Critical-airport analysis</h3>
+      <p class="small">Connectivity loss if each airport is removed, measured from Pune. This is a simplified reference-based measure.</p>
+      <div id="criticalBars"></div>
+    </div>
+    <div class="panel">
+      <h3>Simulation event log</h3>
+      <p class="small">Actions and calculated outcomes in this session.</p>
+      <ul id="eventLog"><li>Sample network initialized.</li></ul>
+    </div>
+  </section>
+
+  <footer>
+    SKYSHIELD · Educational graph-theory simulation · Airport names and distances are illustrative, not operational aviation data.<br>
+    This prototype is not intended for real flight planning, navigation, or safety decisions.
+  </footer>
+</main>
+
+<script>
+const airports = [
+  { id: 0, name: "Pune", x: 95, y: 175 },
+  { id: 1, name: "Mumbai", x: 205, y: 95 },
+  { id: 2, name: "Delhi", x: 375, y: 65 },
+  { id: 3, name: "Bengaluru", x: 255, y: 290 },
+  { id: 4, name: "Hyderabad", x: 370, y: 190 },
+  { id: 5, name: "Chennai", x: 525, y: 285 }
+];
+const originalEdges = [
+  [0,1,150], [0,4,500], [1,2,1150], [1,4,620],
+  [2,4,1250], [2,5,1750], [3,4,500], [3,5,290], [4,5,520]
+];
+let closedAirports = new Set();
+let closedEdges = new Set();
+let logEntries = ["Sample network initialized."];
+let selectedAirport = 0;
+
+const edgeKey = (a,b) => [Math.min(a,b),Math.max(a,b)].join("-");
+const activeAirport = id => !closedAirports.has(id);
+const activeEdges = () => originalEdges.filter(e =>
+  !closedEdges.has(edgeKey(e[0],e[1])) &&
+  activeAirport(e[0]) && activeAirport(e[1])
+);
+function adjacency() {
+  const adj = airports.map(() => []);
+  activeEdges().forEach(([a,b,w]) => {
+    adj[a].push([b,w]); adj[b].push([a,w]);
+  });
+  return adj;
+}
+function bfs(start=0) {
+  if (!activeAirport(start)) return new Set();
+  const adj = adjacency(), seen = new Set([start]), queue = [start];
+  for (let i=0; i<queue.length; i++) {
+    for (const [next] of adj[queue[i]]) {
+      if (!seen.has(next)) { seen.add(next); queue.push(next); }
+    }
+  }
+  return seen;
+}
+function dijkstra(start, end) {
+  if (!activeAirport(start) || !activeAirport(end)) return null;
+  const adj = adjacency(), dist = airports.map(() => Infinity);
+  const prev = airports.map(() => -1), done = new Set();
+  dist[start] = 0;
+  while (done.size < airports.length) {
+    let u = -1, best = Infinity;
+    for (let i=0;i<dist.length;i++)
+      if (activeAirport(i) && !done.has(i) && dist[i] < best) { best=dist[i]; u=i; }
+    if (u === -1) break;
+    if (u === end) break;
+    done.add(u);
+    for (const [v,w] of adj[u]) {
+      if (dist[u]+w < dist[v]) { dist[v]=dist[u]+w; prev[v]=u; }
+    }
+  }
+  if (!Number.isFinite(dist[end])) return null;
+  const path=[]; for(let at=end;at!==-1;at=prev[at]) { path.unshift(at); if(at===start) break; }
+  return { path, distance: dist[end] };
+}
+function log(message) {
+  logEntries.unshift(message);
+  logEntries = logEntries.slice(0,7);
+  document.getElementById("eventLog").innerHTML = "";
+  logEntries.forEach(entry => {
+    const li = document.createElement("li");
+    li.textContent = entry;
+    document.getElementById("eventLog").appendChild(li);
+  });
+}
+function renderNetwork() {
+  const svg = document.getElementById("network");
+  svg.innerHTML = "";
+  originalEdges.forEach(([a,b,w]) => {
+    const A=airports[a], B=airports[b], closed=closedEdges.has(edgeKey(a,b)) || !activeAirport(a) || !activeAirport(b);
+    const line=document.createElementNS("http://www.w3.org/2000/svg","line");
+    line.setAttribute("x1",A.x); line.setAttribute("y1",A.y);
+    line.setAttribute("x2",B.x); line.setAttribute("y2",B.y);
+    line.setAttribute("class","edge"+(closed?" closed":""));
+    svg.appendChild(line);
+    const label=document.createElementNS("http://www.w3.org/2000/svg","text");
+    label.setAttribute("x",(A.x+B.x)/2); label.setAttribute("y",(A.y+B.y)/2-7);
+    label.setAttribute("class","edge-label"); label.textContent=w;
+    svg.appendChild(label);
+  });
+  airports.forEach(a => {
+    const group=document.createElementNS("http://www.w3.org/2000/svg","g");
+    group.setAttribute("class","node"+(!activeAirport(a.id)?" closed":""));
+    group.setAttribute("tabindex","0"); group.setAttribute("role","button");
+    group.setAttribute("aria-label","Inspect "+a.name);
+    group.addEventListener("click",()=>inspectAirport(a.id));
+    group.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();inspectAirport(a.id);}});
+    const circle=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    circle.setAttribute("cx",a.x);circle.setAttribute("cy",a.y);circle.setAttribute("r",22);
+    group.appendChild(circle);
+    const idText=document.createElementNS("http://www.w3.org/2000/svg","text");
+    idText.setAttribute("x",a.x);idText.setAttribute("y",a.y-2);idText.setAttribute("class","id");
+    idText.textContent="AIRPORT "+(a.id+1);group.appendChild(idText);
+    const name=document.createElementNS("http://www.w3.org/2000/svg","text");
+    name.setAttribute("x",a.x);name.setAttribute("y",a.y+37);name.textContent=a.name;
+    group.appendChild(name);svg.appendChild(group);
+  });
+}
+function inspectAirport(id) {
+  selectedAirport=id;
+  const connections=activeEdges().filter(e=>e[0]===id||e[1]===id).length;
+  document.getElementById("routeResult").innerHTML =
+    "<strong>"+airports[id].name+(activeAirport(id)?"":" — CLOSED")+"</strong><p>Active direct connections: "+connections+". Click Find shortest route to calculate a path from Pune.</p>";
+}
+function renderCritical() {
+  const baseline=bfs(0).size;
+  const box=document.getElementById("criticalBars");box.innerHTML="";
+  airports.forEach(a=>{
+    const saved=closedAirports.has(a.id);
+    closedAirports.add(a.id);
+    const after=bfs(0).size;
+    if(!saved) closedAirports.delete(a.id);
+    const loss=Math.max(0,baseline-after);
+    const row=document.createElement("div");row.className="bar-row";
+    const name=document.createElement("span");name.textContent=a.name;
+    const bg=document.createElement("div");bg.className="bar-bg";
+    const fill=document.createElement("div");fill.className="bar-fill";
+    fill.style.width=(loss/airports.length*100)+"%";
+    if(loss>0) fill.style.background="var(--red)";
+    bg.appendChild(fill);
+    const value=document.createElement("span");value.textContent=loss;
+    row.append(name,bg,value);box.appendChild(row);
+  });
+}
+function refresh() {
+  const reachable=bfs(0).size, available=airports.filter(a=>activeAirport(a.id)).length;
+  document.getElementById("airportMetric").textContent=available+" / "+airports.length;
+  document.getElementById("routeMetric").textContent=activeEdges().length;
+  document.getElementById("reachMetric").textContent=reachable+" / "+airports.length;
+  document.getElementById("lossMetric").textContent=Math.max(0,airports.length-reachable);
+  renderNetwork();renderCritical();
+}
+function updateSelectors() {
+  const target=document.getElementById("target");
+  const destination=document.getElementById("destination");
+  const routeTarget=document.getElementById("routeTarget");
+  target.innerHTML="";destination.innerHTML="";routeTarget.innerHTML="";
+  airports.forEach(a=>{
+    const opt=document.createElement("option");opt.value=a.id;opt.textContent=a.name;
+    target.appendChild(opt);
+    const dest=document.createElement("option");dest.value=a.id;dest.textContent=a.name;
+    if(a.id===2) dest.selected=true;destination.appendChild(dest);
+  });
+  originalEdges.forEach(([a,b,w])=>{
+    const opt=document.createElement("option");
+    opt.value=edgeKey(a,b);opt.textContent=airports[a].name+" — "+airports[b].name+" ("+w+" km)";
+    routeTarget.appendChild(opt);
+  });
+}
+document.getElementById("type").addEventListener("change",e=>{
+  document.getElementById("routeChoice").hidden=e.target.value!=="route";
+  document.getElementById("target").parentElement.hidden=e.target.value==="route";
+});
+document.getElementById("apply").addEventListener("click",()=>{
+  if(document.getElementById("type").value==="airport"){
+    const id=Number(document.getElementById("target").value);
+    if(closedAirports.has(id)){log(airports[id].name+" was already closed.");return;}
+    closedAirports.add(id);log("Airport closure simulated: "+airports[id].name+".");
+    document.getElementById("statusResult").innerHTML="<strong>Airport disruption applied</strong><p>"+airports[id].name+" is unavailable. Connectivity has been recalculated using BFS.</p>";
+  } else {
+    const key=document.getElementById("routeTarget").value;
+    if(closedEdges.has(key)){log("That route is already closed.");return;}
+    closedEdges.add(key);log("Route closure simulated: "+key.replace("-"," ↔ ")+".");
+    document.getElementById("statusResult").innerHTML="<strong>Route disruption applied</strong><p>The selected connection is unavailable. Try finding a new shortest route.</p>";
+  }
+  refresh();
+});
+document.getElementById("recover").addEventListener("click",()=>{
+  closedAirports.clear();closedEdges.clear();logEntries=["Network restored to baseline.",...logEntries].slice(0,7);
+  document.getElementById("statusResult").innerHTML="<strong>Baseline restored</strong><p>All six airports and all nine routes are available again.</p>";
+  refresh();
+});
+document.getElementById("analyze").addEventListener("click",()=>{
+  renderCritical();log("Critical-airport connectivity analysis recalculated.");
+  document.getElementById("statusResult").innerHTML="<strong>Analysis complete</strong><p>The bars show the loss of airports reachable from Pune if each airport is additionally removed from the current network.</p>";
+});
+document.getElementById("findRoute").addEventListener("click",()=>{
+  const end=Number(document.getElementById("destination").value);
+  const result=dijkstra(0,end);
+  if(!result){
+    document.getElementById("routeResult").innerHTML="<strong>No available route</strong><p>"+airports[0].name+" cannot reach "+airports[end].name+" under the current disruptions.</p>";
+    log("No route found from Pune to "+airports[end].name+".");
+  } else {
+    const names=result.path.map(id=>airports[id].name).join(" → ");
+    document.getElementById("routeResult").innerHTML="<strong>Shortest route: "+names+"</strong><p>Total illustrative distance: "+result.distance+" km. Calculated using Dijkstra's algorithm.</p>";
+    log("Dijkstra: Pune to "+airports[end].name+" = "+result.distance+" km.");
+  }
+});
+updateSelectors();refresh();
+</script>
+</body>
+</html>
